@@ -35,7 +35,7 @@ public class EmailController implements EmailControllerDoc {
                 .toList();
     }
 
-    @PutMapping("/{email}/{verificationCode}")
+    @PatchMapping("/{email}/{verificationCode}")
     public ResponseEntity<String> verifyEmail(@PathVariable String email,
                                               @PathVariable String verificationCode) {
         return emailService.verifyEmail(email, verificationCode);
