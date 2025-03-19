@@ -27,7 +27,7 @@ public class CryptocurrencyController implements CryptocurrencyControllerDoc {
 
     @GetMapping
     public List<CryptocurrencyResponse> getAllCryptocurrencies() {
-        return cryptocurrencyService.getCryptocurrencies()
+        return cryptocurrencyService.getAllCryptocurrencies()
                 .map(cryptocurrencyMapper::toCryptocurrencyResponse)
                 .toList();
     }

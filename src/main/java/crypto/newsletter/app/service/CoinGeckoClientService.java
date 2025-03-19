@@ -27,7 +27,7 @@ public class CoinGeckoClientService {
 
     public Map<String, BigDecimal> fetchPrices() {
         Set<String> coinGeckoIds = new HashSet<>();
-        Map<String, String> currencyNameToCoinGeckoIdMapping = cryptocurrencyService.getCryptocurrencies()
+        Map<String, String> currencyNameToCoinGeckoIdMapping = cryptocurrencyService.getAllCryptocurrencies()
                 .peek(event -> coinGeckoIds.add(event.getCoinGeckoId()))
                 .collect(Collectors.toMap(
                         CryptocurrencyEvent::getCoinGeckoId,

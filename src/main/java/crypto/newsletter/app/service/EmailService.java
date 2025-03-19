@@ -3,9 +3,8 @@ package crypto.newsletter.app.service;
 import crypto.newsletter.app.exception.EmailNotFoundException;
 import crypto.newsletter.app.model.EmailEvent;
 import crypto.newsletter.app.producer.EmailProducer;
+import crypto.newsletter.app.repository.EmailStore;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.state.KeyValueIterator;
-import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +19,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static crypto.newsletter.app.streams.StreamStore.EMAILS_STORE;
 import static java.util.stream.Collectors.partitioningBy;
 
 @Slf4j
@@ -30,17 +28,17 @@ public class EmailService {
     private static final String VERIFIED_EMAIL_KEY = "verified";
     private static final String UNVERIFIED_EMAIL_KEY = "unverified";
 
+    private final EmailStore emailStore;
     private final EmailProducer emailProducer;
     private final Duration mailVerificationWindow;
-    private final KafkaStoreService kafkaStoreService;
     private final EmailProcessorService emailProcessorService;
 
-    public EmailService(EmailProducer emailProducer,
-                        KafkaStoreService kafkaStoreService,
+    public EmailService(EmailStore emailStore,
+                        EmailProducer emailProducer,
                         EmailProcessorService emailProcessorService,
                         @Value("${mail.verification.window}") Duration mailVerificationWindow) {
         this.emailProducer = emailProducer;
-        this.kafkaStoreService = kafkaStoreService;
+        this.emailStore = emailStore;
         this.emailProcessorService = emailProcessorService;
         this.mailVerificationWindow = mailVerificationWindow;
     }
@@ -88,19 +86,7 @@ public class EmailService {
     }
 
     public Stream<EmailEvent> getAllEmails() {
-        ReadOnlyKeyValueStore<String, EmailEvent> store = kafkaStoreService.getStore(EMAILS_STORE);
-
-        Stream.Builder<EmailEvent> emails = Stream.builder();
-        try (KeyValueIterator<String, EmailEvent> iterator = store.all()) {
-            while (iterator.hasNext()) {
-                EmailEvent event = iterator.next().value;
-                if (event != null) {
-                    emails.add(event);
-                }
-            }
-        }
-
-        return emails.build();
+        return emailStore.getAll();
     }
 
     public ResponseEntity<String> verifyEmail(String email, String verificationCode) {
