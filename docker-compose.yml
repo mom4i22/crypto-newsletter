@@ -40,6 +40,20 @@ services:
     depends_on:
       - kafka
 
+  init-kafka:
+    image: bitnami/kafka
+    depends_on:
+      - kafka
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      echo 'Existing Kafka topics'
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 -- list
+      echo 'Attempting to create Kafka topics'
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --create --if-not-exists --partitions 1 --config cleanup.policy=compact --topic 'emails.cdc'
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --create --if-not-exists --partitions 1 --config cleanup.policy=compact --topic 'cryptocurrencies.cdc'
+      "
+
 networks:
   mainnet:
     driver: bridge
